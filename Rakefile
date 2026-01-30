@@ -29,9 +29,16 @@ namespace :db do
 
   desc "Migrate database"
   task :migrate do
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migrator.migrate('db/migrate')
+    migrations_path = File.join(Dir.pwd, 'db/migrate')
+
+    migration_context = ActiveRecord::MigrationContext.new(
+      migrations_path,
+      ActiveRecord::SchemaMigration
+    )
+
+    migration_context.migrate
   end
+
 
   desc "Show current version"
   task :version do
