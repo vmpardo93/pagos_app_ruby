@@ -30,10 +30,16 @@ namespace :db do
   desc "Migrate database"
   task :migrate do
     migrations_path = File.join(Dir.pwd, 'db/migrate')
+    
+    # En AR 8, necesitamos obtener el pool de conexión para que SchemaMigration funcione
+    pool = ActiveRecord::Base.connection_pool
+    schema_migration = pool.schema_migration
+    internal_metadata = pool.internal_metadata
 
     migration_context = ActiveRecord::MigrationContext.new(
       migrations_path,
-      ActiveRecord::SchemaMigration
+      schema_migration,
+      internal_metadata
     )
 
     migration_context.migrate
