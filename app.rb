@@ -1,6 +1,8 @@
 require_relative 'config/environment'
 require 'sinatra/main'
 
+set :run, false
+
 set :bind, '0.0.0.0'
 set :port, 4567
 
@@ -61,3 +63,5 @@ end
 
 
 Sinatra::Application.run!
+
+run! if __FILE__ == $PROGRAM_NAME
