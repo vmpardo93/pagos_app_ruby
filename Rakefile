@@ -1,43 +1,40 @@
 require 'active_record'
+require 'active_record/tasks/database_tasks'
 require 'yaml'
+require 'erb'
 require 'logger'
-require 'rake'
 
 ENV['RACK_ENV'] ||= 'development'
 
-require 'erb'
 
-raw = ERB.new(File.read('config/database.yml')).result
-require 'erb'
-
-db_config = YAML.load(
-  ERB.new(File.read('config/database.yml')).result,
-  aliases: true
-)[ENV['RACK_ENV']]
+raw_config = ERB.new(File.read('config/database.yml')).result
+db_configs = YAML.load(raw_config, aliases: true)
+db_config = db_configs[ENV['RACK_ENV']]
 
 
 ActiveRecord::Base.establish_connection(db_config)
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
+
+ActiveRecord::Tasks::DatabaseTasks.database_configuration = db_configs
+ActiveRecord::Tasks::DatabaseTasks.db_dir = 'db'
+ActiveRecord::Tasks::DatabaseTasks.env = ENV['RACK_ENV']
+ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
+
 namespace :db do
   desc "Create database"
   task :create do
-    ActiveRecord::Base.connection
-    ActiveRecord::Base.connection.create_database(db_config['database'])
-  rescue ActiveRecord::StatementInvalid
-    puts "Database already exists"
+    ActiveRecord::Tasks::DatabaseTasks.create
   end
 
   desc "Migrate database"
   task :migrate do
-    ActiveRecord::MigrationContext.new(
-      'db/migrate',
-      ActiveRecord::SchemaMigration
-    ).migrate
+    ActiveRecord::Migration.verbose = true
+    ActiveRecord::Migrator.migrate('db/migrate')
   end
 
   desc "Show current version"
   task :version do
-    puts ActiveRecord::SchemaMigration.maximum(:version) || 0
+    puts ActiveRecord::Migrator.current_version
   end
 end
