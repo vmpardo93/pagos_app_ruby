@@ -4,7 +4,7 @@ require 'sinatra'
 require 'sinatra/activerecord'
 
 # Esto lee la configuración de config/database.yml automáticamente
-set :database_file, "config/database.yml"
+set :database_file, "./config/database.yml"
 
 set :run, false
 
