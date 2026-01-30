@@ -1,6 +1,7 @@
 require 'active_record'
 require 'yaml'
 require 'logger'
+require 'rake'
 
 ENV['RACK_ENV'] ||= 'development'
 
@@ -9,29 +10,25 @@ db_config = YAML.load_file('config/database.yml')[ENV['RACK_ENV']]
 ActiveRecord::Base.establish_connection(db_config)
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
-require 'active_record/tasks/database_tasks'
-
-ActiveRecord::Tasks::DatabaseTasks.database_configuration = {
-  ENV['RACK_ENV'] => db_config
-}
-ActiveRecord::Tasks::DatabaseTasks.db_dir = 'db'
-ActiveRecord::Tasks::DatabaseTasks.env = ENV['RACK_ENV']
-ActiveRecord::Tasks::DatabaseTasks.root = Dir.pwd
-
 namespace :db do
   desc "Create database"
   task :create do
-    ActiveRecord::Tasks::DatabaseTasks.create
+    ActiveRecord::Base.connection
+    ActiveRecord::Base.connection.create_database(db_config['database'])
+  rescue ActiveRecord::StatementInvalid
+    puts "Database already exists"
   end
 
   desc "Migrate database"
   task :migrate do
-    ActiveRecord::Migration.verbose = true
-    ActiveRecord::Migrator.migrate('db/migrate')
+    ActiveRecord::MigrationContext.new(
+      'db/migrate',
+      ActiveRecord::SchemaMigration
+    ).migrate
   end
 
   desc "Show current version"
   task :version do
-    puts ActiveRecord::Migrator.current_version
+    puts ActiveRecord::SchemaMigration.maximum(:version) || 0
   end
 end
