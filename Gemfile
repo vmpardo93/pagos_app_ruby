@@ -9,3 +9,4 @@ gem 'pg'
 gem 'puma'
 gem 'rackup'
 gem 'rake'
+
