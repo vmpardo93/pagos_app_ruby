@@ -4,6 +4,7 @@ development:
   database: pagos_database
   pool: 5
   username: postgres
-  password: 1234
-  host: store-db
+  password: postgres
+  host: db
   port: 5432
+
