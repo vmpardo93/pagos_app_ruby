@@ -8,7 +8,13 @@ ENV['RACK_ENV'] ||= 'development'
 require 'erb'
 
 raw = ERB.new(File.read('config/database.yml')).result
-db_config = YAML.safe_load(raw, aliases: true)[ENV['RACK_ENV']]
+require 'erb'
+
+db_config = YAML.load(
+  ERB.new(File.read('config/database.yml')).result,
+  aliases: true
+)[ENV['RACK_ENV']]
+
 
 ActiveRecord::Base.establish_connection(db_config)
 ActiveRecord::Base.logger = Logger.new(STDOUT)
