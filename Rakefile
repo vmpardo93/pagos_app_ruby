@@ -1,2 +1,2 @@
-require "./app" # Esto carga tu conexión a la base de datos
+require "./app"
 require "sinatra/activerecord/rake"
